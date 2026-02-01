@@ -1,10 +1,12 @@
 import os
 from dotenv import load_dotenv
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 load_dotenv()
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+# Initialize the client using the new SDK
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 PROMPT = """
 Write a completely ORIGINAL job information article.
@@ -28,7 +30,16 @@ Structure:
 - Disclaimer
 """
 
-def rewrite_content(title: str) -> str:
-    model = genai.GenerativeModel("gemini-flash-latest")
-    res = model.generate_content(f"Topic: {title}\n\n{PROMPT}")
-    return res.text.strip()
+def rewrite_content(title: str) -> str | None:
+    try:
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=f"Topic: {title}\n\n{PROMPT}",
+            config=types.GenerateContentConfig(
+                temperature=0.7,
+            )
+        )
+        return response.text.strip()
+    except Exception as e:
+        print(f"Error generating content for {title}: {e}")
+        return None

@@ -121,25 +121,31 @@ def generate_labels(title: str) -> list:
 service = blogger_service()
 existing_titles = get_existing_titles(service, TECKFY["blog_id"])
 
-# 2. Collect job titles from scrapers
-print("Scraping new job listings...")
-all_items = scrape_offcampusjobs4u() + scrape_job4freshers()
+# 2. Collect job titles from scraper
+print("Scraping new job listings from Workday sites...")
+# Only scrape and post Workday jobs as per request
+from workday_scraper import scrape_workday_jobs
+from content_builder import build_html_content
+
+# Fetch jobs posted TODAY
+all_items = scrape_workday_jobs(limit=25) # Fetch a bit more to account for duplicates
 
 # 3. Filter out duplicates by checking against the API data
 new_items = [item for item in all_items if not is_duplicate(item["title"], existing_titles)]
 print(f"Found {len(all_items)} total items, {len(new_items)} are new after duplicate check.")
 
-# 4. Limit to 10 posts per day
-max_posts = min(10, len(new_items))
+# 4. Limit to 20 posts per day (as requested)
+max_posts = min(20, len(new_items))
 if max_posts == 0:
     print("No new jobs to post today. Exiting.")
     exit()
 
-# Randomly select items if there are more than 10 new ones
+# Randomly select items if there are more than max
 items_to_post = random.sample(new_items, max_posts) if len(new_items) > max_posts else new_items
 print(f"Will attempt to post {len(items_to_post)} jobs today.")
 
 # 5. Assign random posting times and sort
+# Spreading posts over 12 hours (6am - 6pm) roughly 35 mins apart if 20 posts
 for item in items_to_post:
     item["posting_time"] = get_random_posting_time()
 
@@ -152,16 +158,14 @@ for i, item in enumerate(items_to_post):
         wait_until_posting_time(item["posting_time"])
     
     print("-" * 50)
-    print(f"Processing ({i+1}/{len(items_to_post)}): {item['title']}")
+    print(f"Processing ({i+1}/{len(items_to_post)}): {item['title']} - {item['company']}")
 
-    md_content = rewrite_content(item["title"])
-    html_content = markdown_to_html(md_content)
+    # Build HTML content (No Gemini)
+    html_content = build_html_content(item)
     
-    # Add job schema for SEO
-    html_content = add_job_schema(html_content, item["title"])
-    
-    title = item["title"]
-    labels = generate_labels(title)
+    title = f"{item['title']} - {item['company']} Recruitment 2026" # Enhanced title
+    labels = generate_labels(item['title'])
+    labels.append(item['company']) # Add company as label
 
     try:
         url = publish_post(
@@ -172,15 +176,15 @@ for i, item in enumerate(items_to_post):
         )
         print(f"✅ Successfully Published: {url}")
         # Add the new title to our set to avoid potential duplicates within the same run
-        existing_titles.add(normalize_title(title))
+        existing_titles.add(normalize_title(item['title']))
 
     except Exception as e:
         print(f"❌ Failed to publish post '{title}'. Error: {e}")
     
-    # Add 5-minute safe delay between posts (except for the last one)
+    # Add delay between posts
     if i < len(items_to_post) - 1:
         print("Waiting 5 minutes before next post...")
-        time.sleep(300) # 5 minutes in seconds
+        time.sleep(300) 
 
 print("-" * 50)
 print("Daily posting process completed.")
