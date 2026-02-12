@@ -160,26 +160,45 @@ for i, item in enumerate(items_to_post):
     print("-" * 50)
     print(f"Processing ({i+1}/{len(items_to_post)}): {item['title']} - {item['company']}")
 
-    # Build HTML content (No Gemini)
-    html_content = build_html_content(item)
+    # Build HTML content (No Gemini - now updated with SEO blocks)
+    try:
+        html_content = build_html_content(item)
+    except Exception as e:
+        print(f"Error building HTML for {item['title']}: {e}")
+        continue
     
-    title = f"{item['title']} - {item['company']} Recruitment 2026" # Enhanced title
-    labels = generate_labels(item['title'])
-    labels.append(item['company']) # Add company as label
+    # Generate SEO Metadata
+    from seo_utils import generate_seo_title, generate_slug, generate_meta_description, generate_labels
+    
+    seo_title = generate_seo_title(item)
+    seo_slug = generate_slug(item)
+    seo_description = generate_meta_description(item)
+    seo_labels = generate_labels(item)
+    
+    print(f"   > SEO Title: {seo_title}")
+    print(f"   > Slug: {seo_slug}")
+    print(f"   > Labels: {seo_labels}")
 
     try:
         url = publish_post(
             blog_id=TECKFY["blog_id"],
-            title=title,
+            title=seo_title,
             html=html_content,
-            labels=labels
+            labels=seo_labels,
+            description=seo_description,
+            slug=seo_slug
         )
         print(f"✅ Successfully Published: {url}")
+        
+        # Ping Sitemap
+        from seo_utils import ping_sitemap
+        ping_sitemap()
+        
         # Add the new title to our set to avoid potential duplicates within the same run
         existing_titles.add(normalize_title(item['title']))
 
     except Exception as e:
-        print(f"❌ Failed to publish post '{title}'. Error: {e}")
+        print(f"❌ Failed to publish post '{seo_title}'. Error: {e}")
     
     # Add delay between posts
     if i < len(items_to_post) - 1:

@@ -18,6 +18,14 @@ def build_html_content(job_data):
     # Try to clean up company name for logo/display
     company_name = job_data['company']
     
+    # Generate SEO content
+    from seo_utils import generate_summary, generate_related_block, generate_faq_schema, get_current_year
+    
+    seo_summary = generate_summary(job_data)
+    related_block = generate_related_block(job_data)
+    faq_schema = generate_faq_schema(job_data)
+    current_year = get_current_year()
+
     html = f"""
     <div class="job-post-container" style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto;">
         
@@ -27,6 +35,9 @@ def build_html_content(job_data):
             <h1 style="color: #2c3e50; margin-bottom: 5px; font-size: 24px;">{job_data['title']}</h1>
             <p style="color: #7f8c8d; font-size: 16px; margin-top: 0;">{company_name}</p>
         </div>
+
+        <!-- SEO Summary ->
+        {seo_summary}
 
         <!-- 1. Job Overview -->
         <h2 style="color: #d35400; border-bottom: 2px solid #eee; padding-bottom: 5px;">Job Overview</h2>
@@ -108,6 +119,9 @@ def build_html_content(job_data):
         <div style="text-align: center; margin: 20px 0;">
             <a href="{job_data['apply_url']}" target="_blank" rel="nofollow" style="background-color: #28a745; color: white; padding: 15px 30px; text-decoration: none; font-size: 18px; border-radius: 5px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">Apply Now (Official Link)</a>
         </div>
+        
+        <!-- Internal Linking Block -->
+        {related_block}
 
         <!-- 12. Important Instructions -->
         <h2 style="color: #d35400; border-bottom: 2px solid #eee; padding-bottom: 5px;">Important Instructions</h2>
@@ -146,6 +160,8 @@ def build_html_content(job_data):
           "employmentType": "FULL_TIME"
         }}
         </script>
+        <!-- FAQ Schema -->
+        {faq_schema}
     </div>
     """
     return html
