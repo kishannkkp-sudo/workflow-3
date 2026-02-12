@@ -5,7 +5,7 @@ import re
 from datetime import datetime, time as dt_time, timedelta
 from dotenv import load_dotenv
 from scraper import scrape_offcampusjobs4u, scrape_job4freshers
-from rewriter import rewrite_content
+# from rewriter import rewrite_content
 from formatter import markdown_to_html
 from blogger import publish_post, blogger_service
 
