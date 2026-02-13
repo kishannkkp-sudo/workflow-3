@@ -19,7 +19,7 @@ def blogger_service():
     return build("blogger", "v3", credentials=creds)
 
 
-def publish_post(blog_id: str, title: str, html: str, labels=None, description=None, slug=None) -> str:
+def publish_post(blog_id: str, title: str, html: str, labels=None, description=None, slug=None, publish_date=None) -> str:
     service = blogger_service()
     
     # Prepare post body
@@ -44,6 +44,10 @@ def publish_post(blog_id: str, title: str, html: str, labels=None, description=N
     if slug:
          # Warning: Blogger API may ignore this or require it to be unique/valid
         post_body["url"] = slug
+
+    # Add Scheduled Publish Date (ISO 8601 format)
+    if publish_date:
+        post_body["published"] = publish_date
 
     post = service.posts().insert(
         blogId=blog_id,

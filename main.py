@@ -144,23 +144,37 @@ if max_posts == 0:
 items_to_post = random.sample(new_items, max_posts) if len(new_items) > max_posts else new_items
 print(f"Will attempt to post {len(items_to_post)} jobs today.")
 
-# 5. Assign random posting times and sort
-# Spreading posts over 12 hours (6am - 6pm) roughly 35 mins apart if 20 posts
-for item in items_to_post:
-    item["posting_time"] = get_random_posting_time()
+# 5. Assign random posting times and SCHEDULE via API
+# Spreading posts over the NEXT 12 hours (e.g. 6am - 6pm IST)
+# We assume the script runs once a day (e.g. at 6:00 AM IST)
 
-items_to_post.sort(key=lambda x: x["posting_time"])
+base_time = datetime.now()
+print(f"Current System Time: {base_time}")
 
-# 6. Process and post each item
+# Prepare a list of future times for today/tomorrow
+scheduled_times = []
+for _ in range(len(items_to_post)):
+    # Generate a random time offset between 10 minutes and 12 hours from now
+    # This ensures posts are spread out over the day
+    offset_minutes = random.randint(10, 720) 
+    scheduled_time = base_time + timedelta(minutes=offset_minutes)
+    scheduled_times.append(scheduled_time)
+
+scheduled_times.sort()
+
+# 6. Process and SCHEDULE each item
 for i, item in enumerate(items_to_post):
-    # Wait until posting time if not within hours
-    if not is_within_posting_hours():
-        wait_until_posting_time(item["posting_time"])
+    
+    publish_at = scheduled_times[i]
+    # Convert to ISO 8601 format required by Blogger API (RFC 3339)
+    # We must ensure it has timezone info. .astimezone() uses system local time.
+    publish_date_iso = publish_at.astimezone().isoformat()
     
     print("-" * 50)
-    print(f"Processing ({i+1}/{len(items_to_post)}): {item['title']} - {item['company']}")
+    print(f"Scheduling ({i+1}/{len(items_to_post)}): {item['title']} - {item['company']}")
+    print(f"   > Scheduled Time: {publish_at.astimezone().strftime('%Y-%m-%d %I:%M %p %Z')}")
 
-    # Build HTML content (No Gemini - now updated with SEO blocks)
+    # Build HTML content
     try:
         html_content = build_html_content(item)
     except Exception as e:
@@ -187,7 +201,6 @@ for i, item in enumerate(items_to_post):
     
     print(f"   > SEO Title: {seo_title}")
     print(f"   > Slug: {seo_slug}")
-    print(f"   > Labels: {seo_labels}")
 
     try:
         url = publish_post(
@@ -196,9 +209,10 @@ for i, item in enumerate(items_to_post):
             html=html_content,
             labels=seo_labels,
             description=seo_description,
-            slug=seo_slug
+            slug=seo_slug,
+            publish_date=publish_date_iso # 👈 NEW: Schedule the post
         )
-        print(f"✅ Successfully Published: {url}")
+        print(f"✅ Successfully Scheduled: {url}")
         
         # Ping Sitemap (Deprecated/404)
         # from seo_utils import ping_sitemap
@@ -208,12 +222,12 @@ for i, item in enumerate(items_to_post):
         existing_titles.add(normalize_title(item['title']))
 
     except Exception as e:
-        print(f"❌ Failed to publish post '{seo_title}'. Error: {e}")
+        print(f"❌ Failed to schedule post '{seo_title}'. Error: {e}")
     
-    # Add delay between posts
+    # Valid 5-minute delay between API calls as requested
     if i < len(items_to_post) - 1:
-        print("Waiting 5 minutes before next post...")
-        time.sleep(300) 
+        print("Waiting 5 minutes before scheduling next post...")
+        time.sleep(300)
 
 print("-" * 50)
-print("Daily posting process completed.")
+print("Daily scheduling process completed. GitHub Action will exit now.")

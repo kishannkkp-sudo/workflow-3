@@ -2,7 +2,7 @@ name: Daily Autoblog
 
 on:
   schedule:
-    - cron: "30 0-12 * * *" # Runs hourly from 6:00 AM to 6:00 PM IST (00:30 UTC to 12:30 UTC)
+    - cron: "30 0 * * *" # Runs daily at 6:00 AM IST (00:30 UTC)
   workflow_dispatch:
 
 jobs:
