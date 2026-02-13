@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 
 # Ensure we can import from the directory
 sys.path.append(os.getcwd())
@@ -17,7 +18,7 @@ def test_seo_upgrades():
         "location": "Bangalore",
         "posted_on": "Today",
         "logo": "https://example.com/logo.png",
-        "description": "<p>Job Description here...</p>",
+        "description": "<p>Job Description here... " + "word " * 500 + "</p>", # Simulate length
         "apply_url": "https://example.com/apply",
         "company_url": "https://techcorp.com"
     }
@@ -28,25 +29,32 @@ def test_seo_upgrades():
     print("\n--- Testing HTML Generation ---")
     html = build_html_content(job_data)
     
-    if f"IT Jobs {current_year}" in html:
-        print("[PASS] Automatic Year Detected in HTML")
+    # Word Count Check
+    text_content = re.sub(r'<[^>]+>', '', html)
+    word_count = len(text_content.split())
+    print(f"Total Word Count: {word_count}")
+    
+    if word_count > 900:
+        print("[PASS] Word Count > 900 (AdSense Safe)")
     else:
-        print(f"[FAIL] Automatic Year NOT Found in HTML (Expected 'IT Jobs {current_year}')")
+        print(f"[FAIL] Word Count Low ({word_count} words). Target: 900+")
 
-    if 'class="job-summary"' in html:
-        print("[PASS] SEO Summary Block Present")
-    else:
-        print("[FAIL] SEO Summary Block Missing")
-        
-    if 'class="related-jobs"' in html:
-        print("[PASS] Internal Linking Block Present")
-    else:
-        print("[FAIL] Internal Linking Block Missing")
+    # Section Checks
+    checks = {
+        "Breadcrumbs": "Home &gt; IT Jobs",
+        "SEO Summary": 'class="job-summary"',
+        "Career Growth": 'class="career-growth-section"',
+        "Prep Guide": 'class="prep-guide-section"',
+        "Author Bio": 'class="author-bio"',
+        "Internal Links": 'class="related-jobs"',
+        "FAQ Schema": '"@type": "FAQPage"'
+    }
 
-    if '"@type": "FAQPage"' in html:
-        print("[PASS] FAQ Schema Present")
-    else:
-        print("[FAIL] FAQ Schema Missing")
+    for name, marker in checks.items():
+        if marker in html:
+            print(f"[PASS] {name} Section Present")
+        else:
+            print(f"[FAIL] {name} Section Missing")
 
     # 2. Test SEO Utilities
     print("\n--- Testing SEO Utilities ---")

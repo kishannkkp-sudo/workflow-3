@@ -134,8 +134,8 @@ all_items = scrape_workday_jobs(limit=25) # Fetch a bit more to account for dupl
 new_items = [item for item in all_items if not is_duplicate(item["title"], existing_titles)]
 print(f"Found {len(all_items)} total items, {len(new_items)} are new after duplicate check.")
 
-# 4. Limit to 20 posts per day (as requested)
-max_posts = min(20, len(new_items))
+# 4. Limit to 5 posts per day (AdSense Optimized)
+max_posts = min(5, len(new_items))
 if max_posts == 0:
     print("No new jobs to post today. Exiting.")
     exit()
@@ -167,6 +167,16 @@ for i, item in enumerate(items_to_post):
         print(f"Error building HTML for {item['title']}: {e}")
         continue
     
+    # 🚨 AdSense Gate: Check Word Count
+    text_content = re.sub(r'<[^>]+>', '', html_content)
+    word_count = len(text_content.split())
+    
+    if word_count < 900:
+        print(f"⚠️ Skipping post due to Low Word Count: {word_count} words (Minimum 900 required)")
+        continue
+    else:
+        print(f"✅ Word Count Pass: {word_count} words")
+
     # Generate SEO Metadata
     from seo_utils import generate_seo_title, generate_slug, generate_meta_description, generate_labels
     
@@ -190,9 +200,9 @@ for i, item in enumerate(items_to_post):
         )
         print(f"✅ Successfully Published: {url}")
         
-        # Ping Sitemap
-        from seo_utils import ping_sitemap
-        ping_sitemap()
+        # Ping Sitemap (Deprecated/404)
+        # from seo_utils import ping_sitemap
+        # ping_sitemap()
         
         # Add the new title to our set to avoid potential duplicates within the same run
         existing_titles.add(normalize_title(item['title']))

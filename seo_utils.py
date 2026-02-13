@@ -1,7 +1,80 @@
 import re
 import requests
 import json
+import random
 from datetime import datetime
+
+# --- Role-Based Content Templates ---
+ROLE_TEMPLATES = {
+    "Software Engineer": {
+        "prep_tips": [
+            "Focus on Data Structures and Algorithms (DSA), especially Arrays, Linked Lists, and Trees.",
+            "Practice coding problems on platforms like LeetCode and HackerRank.",
+            "Revise core CS concepts: OS, DBMS, and Computer Networks.",
+            "Prepare for System Design questions if applying for senior roles.",
+            "Build a strong portfolio with full-stack projects using React, Node.js, or Django."
+        ],
+        "career_growth": [
+            "Software Engineering is one of the highest-paying domains in India.",
+            "With the rise of AI and Web3, demand for skilled engineers is at an all-time high.",
+            "expect a salary hike of 10-30% annually with upskilling.",
+            "Moving from service-based to product-based companies can double your package."
+        ]
+    },
+    "Data Scientist": {
+        "prep_tips": [
+            "Master Python libraries: Pandas, NumPy, Scikit-learn, and TensorFlow.",
+            "Brush up on Statistics and Probability theory.",
+            "Practice SQL queries for data extraction and manipulation.",
+            "Work on real-world datasets from Kaggle to showcase your skills.",
+            "Understand the basics of MLOps and model deployment."
+        ],
+        "career_growth": [
+            "Data Science is labeled the 'Sexiest Job of the 21st Century'.",
+            "Companies are aggressively hiring for AI/ML roles in Bangalore and Hyderabad.",
+            "Senior potential is huge, with paths leading to AI Architect or Chief Data Officer."
+        ]
+    },
+    "Web Developer": {
+        "prep_tips": [
+            "Solidify your HTML, CSS, and JavaScript fundamentals.",
+            "Learn a modern frontend framework like React.js, Vue.js, or Angular.",
+            "Understand RESTful APIs and how to consume them.",
+            "Practice building responsive layouts that work on all devices.",
+            "Get familiar with version control (Git) and deployment platforms like Vercel."
+        ],
+        "career_growth": [
+            "Web Development is the backbone of the digital economy.",
+            "Freelancing opportunities are abundant for skilled web developers.",
+            "Full-stack developers command premium salaries in the current market."
+        ]
+    },
+    "General": {
+        "prep_tips": [
+            "Research the company's culture and values before the interview.",
+            "Update your resume to highlight relevant skills and achievements.",
+            "Prepare answers for common behavioral questions (STAR method).",
+            "Work on your communication and soft skills.",
+            "Mock interviews can significantly boost your confidence."
+        ],
+        "career_growth": [
+            "The IT sector in India is projected to grow significantly in 2026.",
+            "Continuous learning and upskilling are key to a long-term career.",
+            "Networking on LinkedIn can open doors to unadvertised opportunities."
+        ]
+    }
+}
+
+def get_role_category(title):
+    """Determines the role category based on the job title."""
+    title_lower = title.lower()
+    if any(k in title_lower for k in ["software", "sde", "engineer", "developer", "programmer"]):
+        if "web" in title_lower or "frontend" in title_lower or "backend" in title_lower:
+            return "Web Developer"
+        return "Software Engineer"
+    if any(k in title_lower for k in ["data", "analyst", "scientist", "ml", "ai"]):
+        return "Data Scientist"
+    return "General"
 
 def get_current_year():
     """Returns the current year dynamically."""
@@ -56,13 +129,84 @@ def generate_labels(job_data):
     
     return list(set(labels))  # Remove duplicates
 
+def generate_breadcrumb(job_data):
+    """
+    Generates a simple breadcrumb string.
+    Format: Home > IT Jobs > {Company} Recruitment
+    """
+    return f"Home &gt; IT Jobs &gt; {job_data['company']} Recruitment"
+
+
+def generate_role_based_prep_guide(job_data):
+    """
+    Generates a role-specific preparation guide using randomized templates.
+    """
+    role = get_role_category(job_data['title'])
+    tips = ROLE_TEMPLATES.get(role, ROLE_TEMPLATES["General"])["prep_tips"]
+    selected_tips = random.sample(tips, min(3, len(tips)))
+    
+    html = f"""
+    <div class="prep-guide-section">
+        <h3>🎯 How to Prepare for {job_data['title']} Role</h3>
+        <p>To crack the interview at <strong>{job_data['company']}</strong>, focus on the following:</p>
+        <ul class="prep-guide-list">
+    """
+    for tip in selected_tips:
+        html += f"<li>{tip}</li>"
+    html += """
+        </ul>
+    </div>
+    """
+    return html
+
+def generate_career_growth_section(job_data):
+    """
+    Generates a high-value 'Why This Role' section.
+    """
+    role = get_role_category(job_data['title'])
+    points = ROLE_TEMPLATES.get(role, ROLE_TEMPLATES["General"])["career_growth"]
+    selected_points = random.sample(points, min(2, len(points)))
+    year = get_current_year()
+    
+    html = f"""
+    <div class="career-growth-section">
+        <h3>🚀 Why {job_data['title']} is a Strategic Career Move in {year}</h3>
+        <p>Joining <strong>{job_data['company']}</strong> as a {job_data['title']} offers excellent growth prospects. Here's why this role is trending:</p>
+        <ul class="career-growth-list">
+    """
+    for point in selected_points:
+         html += f"<li>{point}</li>"
+    
+    html += f"""
+        </ul>
+        <p><em>Industry Insight: {role} roles in {job_data['location']} are currently seeing high demand.</em></p>
+    </div>
+    """
+    return html
+
+def generate_author_bio():
+    """
+    Generates the specific Author Bio signal.
+    """
+    return """
+    <div class="author-bio">
+        <div class="bio-img-wrapper">
+            <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgLI2OWm0OjCH8plxz9SkZZ_k_rOC2sUNoCy00qmVL9Z7Z5ACxKeNnWYypZPnA4g_UxNxhfFf8wszR3uYCKCWraO06QfqgP4iRrbAUSzfCX2YIWXnlpMChVpjINtFDpnOoiiCWlAn9rxDN8WNGzPZWftcodAnlNbdqKUljDMsIT4ZnfrhKFkrkTGyj2xK6n/s1600/FirstJobTech_logo_175x55.png" alt="Kishan Prajapati">
+        </div>
+        <div class="bio-text">
+            <h4>Kishan Prajapati</h4>
+            <p>Career Researcher & IT Industry Analyst. Helping freshers and professionals find verified private IT job opportunities in India.</p>
+        </div>
+    </div>
+    """
+
 def generate_summary(job_data):
     """
     Generates a unique 300-word summary to prevent thin content issues.
     """
     year = get_current_year()
     return f"""
-<div class="job-summary" style="background-color: #f0fdf4; border-left: 4px solid #28a745; padding: 15px; margin-bottom: 20px; font-size: 16px;">
+<div class="job-summary">
     <p><strong>{job_data['company']}</strong> is hiring talented professionals for the position of <strong>{job_data['title']}</strong> in <strong>{job_data['location']}</strong>. 
     This opportunity is ideal for candidates looking to build a strong career in the IT industry in {year}. 
     Applicants should carefully review the eligibility criteria, required skills, and selection process before applying online.</p>
@@ -79,16 +223,17 @@ def generate_related_block(job_data):
     """
     year = get_current_year()
     return f"""
-<div class="related-jobs" style="margin-top: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 8px;">
-    <h3 style="color: #2c3e50; border-bottom: 2px solid #ddd; padding-bottom: 5px;">Latest IT Jobs {year}</h3>
-    <ul style="list-style-type: none; padding: 0;">
-        <li style="margin-bottom: 8px;">👉 <a href='/search/label/IT Jobs {year}' style="text-decoration: none; color: #007bff; font-weight: bold;">More IT Jobs {year}</a></li>
-        <li style="margin-bottom: 8px;">👉 <a href='/search/label/{job_data['location']}' style="text-decoration: none; color: #007bff; font-weight: bold;">Jobs in {job_data['location']}</a></li>
-        <li style="margin-bottom: 8px;">👉 <a href='/search/label/{job_data['company']}' style="text-decoration: none; color: #007bff; font-weight: bold;">More {job_data['company']} Jobs</a></li>
-        <li style="margin-bottom: 8px;">👉 <a href='/search/label/Freshers Jobs' style="text-decoration: none; color: #007bff; font-weight: bold;">Latest Freshers Jobs</a></li>
+<div class="related-jobs-block">
+    <h3>Latest IT Jobs {year}</h3>
+    <ul>
+        <li>👉 <a href='/search/label/IT Jobs {year}'>More IT Jobs {year}</a></li>
+        <li>👉 <a href='/search/label/{job_data['location']}'>Jobs in {job_data['location']}</a></li>
+        <li>👉 <a href='/search/label/{job_data['company']}'>More {job_data['company']} Jobs</a></li>
+        <li>👉 <a href='/search/label/Freshers Jobs'>Latest Freshers Jobs</a></li>
     </ul>
 </div>
 """
+
 
 def generate_faq_schema(job_data):
     """
