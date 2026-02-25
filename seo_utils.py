@@ -117,15 +117,22 @@ def generate_labels(job_data):
         job_data['location'],
         f"IT Jobs {year}",
         f"Private Jobs {year}",
-        job_data['title']
+        job_data['title'],
+        "FirstJobTech",
+        "FirstJobTech.in",
+        f"Off Campus Jobs {year}",
+        f"Tech Jobs India {year}",
+        "Job Portal India",
+        "Latest IT Recruitment",
+        f"Hiring {year}"
     ]
     
     # Add extra categories if relevant
     title_lower = job_data['title'].lower()
     if any(word in title_lower for word in ["engineer", "developer", "software"]):
-        labels.append("Engineering Jobs")
+        labels.extend(["Engineering Jobs", "Software Jobs India", "Tech Careers"])
     if "fresher" in title_lower:
-        labels.append("Freshers Jobs")
+        labels.extend(["Freshers Jobs", "Entry Level Jobs", "Graduate Jobs"])
     
     return list(set(labels))  # Remove duplicates
 
@@ -279,6 +286,56 @@ def generate_faq_schema(job_data):
         ]
     }
     return f'<script type="application/ld+json">{json.dumps(schema, indent=2)}</script>'
+
+def generate_meta_tags(job_data):
+    """
+    Generates comprehensive meta tags for stronger SEO.
+    """
+    year = get_current_year()
+    meta_tags = f"""
+    <meta name="keywords" content="{job_data['company']} Jobs, {job_data['title']}, IT Jobs {year}, FirstJobTech, FirstJobTech.in, {job_data['location']} Jobs, Off Campus Recruitment, Tech Jobs India, Private Sector Jobs, Latest Hiring {year}, Job Portal India, Freshers Jobs, Engineering Careers, Software Jobs India" />
+    <meta name="author" content="FirstJobTech.in - Kishan Prajapati" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta property="og:site_name" content="FirstJobTech.in" />
+    <meta property="og:type" content="article" />
+    <meta property="og:locale" content="en_IN" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@FirstJobTech" />
+    <link rel="canonical" href="https://www.firstjobtech.in/{generate_slug(job_data)}" />
+    <meta name="theme-color" content="#1a73e8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    """
+    return meta_tags
+
+def generate_hashtags(job_data):
+    """
+    Generates trending hashtags for social media and SEO.
+    """
+    year = get_current_year()
+    company_tag = job_data['company'].replace(' ', '')
+    location_tag = job_data['location'].replace(' ', '')
+    
+    hashtags = [
+        "#FirstJobTech",
+        "#FirstJobTechIn",
+        f"#ITJobs{year}",
+        f"#{company_tag}Jobs",
+        f"#{company_tag}Hiring",
+        f"#JobsIn{location_tag}",
+        "#OffCampusJobs",
+        "#TechJobsIndia",
+        "#FreshersJobs",
+        f"#Hiring{year}",
+        "#JobPortalIndia",
+        "#CareerOpportunity",
+        "#ITRecruitment",
+        "#SoftwareJobs",
+        "#EngineeringJobs",
+        "#JobAlert",
+        "#ApplyNow"
+    ]
+    return ' '.join(hashtags)
 
 def ping_sitemap(sitemap_url="https://www.firstjobtech.in/sitemap.xml"):
     """
